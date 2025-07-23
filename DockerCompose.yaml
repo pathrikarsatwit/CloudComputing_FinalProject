@@ -12,6 +12,39 @@ services:
       - "3308:3306"
     volumes:
       - ./mysql_db_data:/var/lib/mysql  
+  
+  postfix:
+    image: boky/postfix
+    container_name: postfix2
+    environment:
+      - HOSTNAME=mail.localhost
+      - RELAYHOST=[mailhog2]:1025
+      - ALLOWED_SENDER_DOMAINS=*
+    ports:
+      - "1587:587"
+      - "2525:25"
+    restart: unless-stopped
+    depends_on:
+      - mailhog
+
+  mailhog:
+    image: mailhog/mailhog
+    container_name: mailhog2
+    ports:
+      - "8025:8025"   
+      - "2025:1025"   
+    restart: unless-stopped
+
+  login-page:
+    build: ./web
+    container_name: login-page
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    depends_on:
+      - db
+    environment:
+      - password=${password}
 
 volumes:
   mysql_db_data:
