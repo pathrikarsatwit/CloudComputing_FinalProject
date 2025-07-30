@@ -13,9 +13,9 @@ app.use(session({
 }));
 
 const db = mysql.createPool({
-  host: 'db',
+  host:"db",
   user: 'root',
-  password: process.env.password,
+  password: 'Sakshi@1234',
   database: 'pokemon_shop'
 });
 

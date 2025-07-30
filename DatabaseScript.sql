@@ -1,17 +1,20 @@
--- create database pokemon_shop
+-- Create and select database
+CREATE DATABASE IF NOT EXISTS pokemon_shop;
 USE pokemon_shop;
+
 -- Create Pokemon table
 CREATE TABLE Pokemon (
-    pokemon_id INT PRIMARY KEY,
+    pokemon_id INT AUTO_INCREMENT PRIMARY KEY,
     pokemon_name VARCHAR(100),
     pokemon_level INT
 );
 
 -- Create Type table
 CREATE TABLE Type (
-    type_id INT PRIMARY KEY,
+    type_id INT AUTO_INCREMENT PRIMARY KEY,
     type_name VARCHAR(50),
-    description VARCHAR(255)
+    description VARCHAR(255),
+    UNIQUE (type_name)  -- moved the unique constraint here directly
 );
 
 -- Create PokemonType table (many-to-many between Pokemon and Type)
@@ -25,7 +28,7 @@ CREATE TABLE PokemonType (
 
 -- Create SpecialAttacks table
 CREATE TABLE SpecialAttacks (
-    attack_id INT PRIMARY KEY,
+    attack_id INT AUTO_INCREMENT PRIMARY KEY,
     attack_name VARCHAR(100),
     attack_power INT,
     attack_type_id INT,
@@ -40,9 +43,6 @@ CREATE TABLE PokemonSpecialAttacks (
     FOREIGN KEY (pokemon_id) REFERENCES Pokemon(pokemon_id),
     FOREIGN KEY (attack_id) REFERENCES SpecialAttacks(attack_id)
 );
-
--- Optional: Create a unique constraint to enforce unique type_name
-ALTER TABLE Type ADD CONSTRAINT unique_type_name UNIQUE (type_name);
 
 -- -----------------------------
 -- Insert sample data
@@ -64,10 +64,10 @@ INSERT INTO Pokemon (pokemon_id, pokemon_name, pokemon_level) VALUES
 
 -- Assign Types to Pokemon
 INSERT INTO PokemonType (pokemon_id, type_id) VALUES
-(101, 1),  -- Charmander: Fire
-(102, 2),  -- Squirtle: Water
-(103, 3),  -- Bulbasaur: Grass
-(104, 4);  -- Pikachu: Electric
+(101, 1),
+(102, 2),
+(103, 3),
+(104, 4);
 
 -- Insert Special Attacks
 INSERT INTO SpecialAttacks (attack_id, attack_name, attack_power, attack_type_id) VALUES
@@ -78,7 +78,9 @@ INSERT INTO SpecialAttacks (attack_id, attack_name, attack_power, attack_type_id
 
 -- Assign Special Attacks to Pokemon
 INSERT INTO PokemonSpecialAttacks (pokemon_id, attack_id) VALUES
-(101, 201),  -- Charmander uses Flamethrower
-(102, 202),  -- Squirtle uses Water Gun
-(103, 203),  -- Bulbasaur uses Vine Whip
-(104, 204);  -- Pikachu uses Thunderbolt
+(101, 201),
+(102, 202),
+(103, 203),
+(104, 204);
+
+ALTER TABLE pokemon ADD COLUMN image_filename VARCHAR(255);
