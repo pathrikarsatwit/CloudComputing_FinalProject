@@ -3,10 +3,12 @@ from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 import mysql.connector
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
-
 
 def connect_to_db():
     return mysql.connector.connect(
@@ -59,6 +61,8 @@ def dashboard(request: Request):
         "attacks": attacks
     })
 
+
+
 @app.get("/add")
 def add_page(request: Request):
     db = connect_to_db()
@@ -72,7 +76,13 @@ def add_page(request: Request):
     return templates.TemplateResponse("addPokemon.html", {"request": request, "types": types, "attacks": attacks})
 
 @app.post("/addPokemon")
-def add_pokemon(request: Request, pokemmon_name: str = Form(...), pokemon_level: int = Form(...), type_id: int = Form(...), attack_id: int = Form(...)):
+def add_pokemon(
+    request: Request,
+    pokemmon_name: str = Form(...),
+    pokemon_level: int = Form(...),
+    type_id: int = Form(...),
+    attack_id: int = Form(...)
+):
     db = connect_to_db()
     cursor = db.cursor()
     cursor.execute("INSERT INTO pokemon (pokemon_name, pokemon_level) VALUES (%s, %s)", (pokemmon_name, pokemon_level))
@@ -85,7 +95,31 @@ def add_pokemon(request: Request, pokemmon_name: str = Form(...), pokemon_level:
     db.commit()
     cursor.close()
     db.close()
+
+    # Send email
+    send_email_notification(pokemmon_name, pokemon_level)
+
     return RedirectResponse(url=f"/addedPokemon/{pokemon_id}", status_code=303)
+
+def send_email_notification(name, level):
+    sender = "noreply@pokemon.com"
+    recipient = "ash@trainer.com"  # This will be caught by MailHog
+    subject = "New Pokémon Added"
+    body = f"A new Pokémon has been added:\n\nName: {name}\nLevel: {level}"
+
+    msg = MIMEMultipart()
+    msg["From"] = sender
+    msg["To"] = recipient
+    msg["Subject"] = subject
+
+    msg.attach(MIMEText(body, "plain"))
+
+    try:
+        with smtplib.SMTP("postfix2", 587) as server:  # Connect to Postfix container
+            server.sendmail(sender, recipient, msg.as_string())
+    except Exception as e:
+        print("Failed to send email:", e)
+
 
 @app.get("/addedPokemon/{pokemon_id}")
 def added_pokemon(request: Request, pokemon_id: int):
@@ -107,7 +141,6 @@ def added_pokemon(request: Request, pokemon_id: int):
     cursor.close()
     db.close()
     return templates.TemplateResponse("addedPokemon.html", {"request": request, "pokemon": data})
-
 @app.get("/about")
 def about_page(request: Request):
     return templates.TemplateResponse("about.html", {"request": request})
@@ -143,4 +176,3 @@ def add_attack(request: Request, attack_name: str = Form(...), attack_power: int
     cursor.close()
     db.close()
     return RedirectResponse(url="/dashboard", status_code=303)
-
