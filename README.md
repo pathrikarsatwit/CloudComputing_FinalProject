@@ -1,4 +1,4 @@
-# CloudComputing_FinalProject_SakshiPathrikar
+# CloudComputing_FinalProject
 
 1. Introduction To your project
     1. This project is built to provide a cloud environment that a Software developer can use to create an application.
